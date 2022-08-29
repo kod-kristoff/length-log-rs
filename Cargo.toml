@@ -7,9 +7,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-polars = "0.22"
+polars = "0.23"
 rustyline = "10"
 log = "0"
 env_logger = "0"
 nom = "7.1"
-thiserror = "*"
+clap = "3.2.18"
+shlex = "1.1.0"
