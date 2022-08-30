@@ -54,7 +54,21 @@ fn respond(line: &str) -> Result<bool, Error> {
         .try_get_matches_from(&args)
         .map_err(|e| Error::Unknown(e.to_string()))?;
     match matches.subcommand() {
-        Some(("ping", _matches)) => {
+        Some(("person", matches)) => {
+            log::trace!("got person command");
+            match matches.subcommand() {
+                Some(("add", submatches)) => {
+                    log::trace!("adding person ...");
+                    let name = submatches.value_of("name").expect("required");
+                    log::trace!("name = {}", name);
+                    let date = submatches.value_of("date");
+                    log::trace!("date = {:?}", date);
+                    app::add_person(name, date);
+
+                }
+                Some((name, _matches)) => unimplemented!("{}", name),
+                None => unreachable!("subcommand required"),
+            }
             writeln!(std::io::stdout(), "Pong")?;
             std::io::stdout().flush()?;
         }
@@ -73,7 +87,7 @@ fn respond(line: &str) -> Result<bool, Error> {
 
 
 fn cli() -> clap::Command<'static> {
-    use clap::Command;
+    use clap::{Arg, Command};
     // strip out usage
     const PARSER_TEMPLATE: &str = "\
         {all-args}
@@ -86,7 +100,7 @@ fn cli() -> clap::Command<'static> {
         {all-args}{after-help}\
     ";
 
-    Command::new("repl")
+    Command::new("length-log")
         .multicall(true)
         .arg_required_else_help(true)
         .subcommand_required(true)
@@ -94,9 +108,15 @@ fn cli() -> clap::Command<'static> {
         .subcommand_help_heading("APPLETS")
         .help_template(PARSER_TEMPLATE)
         .subcommand(
-            Command::new("ping")
-                .about("Get a response")
-                .help_template(APPLET_TEMPLATE),
+            Command::new("person")
+                .about("Handle person")
+                .help_template(APPLET_TEMPLATE)
+                .arg_required_else_help(true)
+                .subcommand(
+                    Command::new("add")
+                        .arg(Arg::new("name").required(true).takes_value(true))
+                        .arg(Arg::new("date").takes_value(true))
+                ),
         )
         .subcommand(
             Command::new("quit")
