@@ -1,6 +1,6 @@
-mod app;
-mod error;
-use error::Error;
+use length_log::app;
+
+use length_log::error::Error;
 use rustyline::error::ReadlineError;
 use std::io::Write;
 fn main() -> rustyline::Result<()> {
