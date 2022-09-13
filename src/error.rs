@@ -7,7 +7,6 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
-
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -17,7 +16,6 @@ impl fmt::Display for Error {
         }
     }
 }
-
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {

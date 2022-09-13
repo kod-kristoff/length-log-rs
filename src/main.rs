@@ -1,7 +1,7 @@
 mod app;
 mod error;
-use rustyline::error::ReadlineError;
 use error::Error;
+use rustyline::error::ReadlineError;
 use std::io::Write;
 fn main() -> rustyline::Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("trace"))
@@ -47,7 +47,6 @@ fn main() -> rustyline::Result<()> {
     Ok(())
 }
 
-
 fn respond(line: &str) -> Result<bool, Error> {
     let args = shlex::split(line).ok_or_else(|| Error::InvalidQuoting(line.to_string()))?;
     let matches = cli()
@@ -64,7 +63,6 @@ fn respond(line: &str) -> Result<bool, Error> {
                     let date = submatches.value_of("date");
                     log::trace!("date = {:?}", date);
                     app::add_person(name, date);
-
                 }
                 Some((name, _matches)) => unimplemented!("{}", name),
                 None => unreachable!("subcommand required"),
@@ -82,9 +80,7 @@ fn respond(line: &str) -> Result<bool, Error> {
     }
 
     Ok(false)
-
 }
-
 
 fn cli() -> clap::Command<'static> {
     use clap::{Arg, Command};
@@ -115,7 +111,7 @@ fn cli() -> clap::Command<'static> {
                 .subcommand(
                     Command::new("add")
                         .arg(Arg::new("name").required(true).takes_value(true))
-                        .arg(Arg::new("date").takes_value(true))
+                        .arg(Arg::new("date").takes_value(true)),
                 ),
         )
         .subcommand(
