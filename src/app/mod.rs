@@ -30,6 +30,14 @@ pub enum Command {
     Person,
 }
 
-pub fn add_person(name: &str, date: Option<&str>) {
+pub struct App {}
+
+impl App {
+    pub fn new() -> Self {
+        log::trace!("creating App ...");
+        Self {}
+    }
+pub fn add_person(&self, name: &str, date: Option<&str>) {
     log::trace!("adding person '{}' with date = {:?}", name, date);
+}
 }

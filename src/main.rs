@@ -1,6 +1,6 @@
-use length_log::app;
+use length_log::App;
 
-use length_log::error::Error;
+use length_log::Error;
 use rustyline::error::ReadlineError;
 use std::io::Write;
 fn main() -> rustyline::Result<()> {
@@ -9,13 +9,14 @@ fn main() -> rustyline::Result<()> {
         .filter(Some("rustyline"), log::LevelFilter::Warn)
         .init();
 
+    let app = App::new();
     let mut repl = rustyline::Editor::<()>::new()?;
     loop {
         let readline = repl.readline(">> ");
         match readline {
             Ok(line) => {
                 log::trace!("Line: {:?}", line);
-                match respond(&line) {
+                match respond(&app, &line) {
                     Ok(quit) => {
                         log::trace!("command succedded");
 
@@ -47,7 +48,7 @@ fn main() -> rustyline::Result<()> {
     Ok(())
 }
 
-fn respond(line: &str) -> Result<bool, Error> {
+fn respond(app: &App, line: &str) -> Result<bool, Error> {
     let args = shlex::split(line).ok_or_else(|| Error::InvalidQuoting(line.to_string()))?;
     let matches = cli()
         .try_get_matches_from(&args)
@@ -62,7 +63,7 @@ fn respond(line: &str) -> Result<bool, Error> {
                     log::trace!("name = {}", name);
                     let date = submatches.value_of("date");
                     log::trace!("date = {:?}", date);
-                    app::add_person(name, date);
+                    app.add_person(name, date);
                 }
                 Some((name, _matches)) => unimplemented!("{}", name),
                 None => unreachable!("subcommand required"),
