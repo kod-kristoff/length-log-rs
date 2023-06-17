@@ -1,5 +1,6 @@
 use crate::error::Error;
 use nom::{bytes::complete::tag, combinator::map, IResult};
+use polars::prelude::DataFrame;
 
 fn person(i: &str) -> IResult<&str, &str> {
     tag("person")(i)
@@ -30,14 +31,18 @@ pub enum Command {
     Person,
 }
 
-pub struct App {}
+pub struct App {
+    persons: DataFrame,
+}
 
 impl App {
     pub fn new() -> Self {
         log::trace!("creating App ...");
-        Self {}
+        Self {
+            persons: DataFrame::default(),
+        }
     }
-pub fn add_person(&self, name: &str, date: Option<&str>) {
-    log::trace!("adding person '{}' with date = {:?}", name, date);
-}
+    pub fn add_person(&self, name: &str, date: Option<&str>) {
+        log::trace!("adding person '{}' with date = {:?}", name, date);
+    }
 }
