@@ -9,7 +9,7 @@ length-log-repl = { path = "./crates/length-log-repl" }
 
 # external crates
 # polars = { version = "0.38", default-features = false }
-rustyline = "10"
+rustyline = "14"
 # log = "0"
 # env_logger = "0"
 nom = "7.1"
