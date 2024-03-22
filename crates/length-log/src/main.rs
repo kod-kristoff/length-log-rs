@@ -1,4 +1,6 @@
-use length_log_core::App;
+use std::sync::Arc;
+
+use length_log_core::{services::impls::LogPersonService, App};
 use length_log_repl::run_repl;
 
 fn main() {
@@ -7,7 +9,7 @@ fn main() {
         .filter(Some("rustyline"), log::LevelFilter::Warn)
         .init();
 
-    let app = App::new();
+    let app = App::new(Arc::new(LogPersonService::default()));
     if let Err(err) = run_repl(app) {
         log::error!("{}", err);
         eprintln!("Error occurred: {:?}", err);

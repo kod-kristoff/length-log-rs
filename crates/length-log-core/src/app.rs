@@ -31,19 +31,23 @@
 //     Person,
 // }
 
-#[derive(Debug, Clone)]
+use crate::{models::Person, services::SharedPersonService};
+
+#[derive(Clone)]
 pub struct App {
-    // persons: DataFrame,
+    person_service: SharedPersonService,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(person_service: SharedPersonService) -> Self {
         log::trace!("creating App ...");
         Self {
-            // persons: DataFrame::default(),
+            person_service
         }
     }
-    pub fn add_person(&self, name: &str, date: Option<&str>) {
-        log::trace!("adding person '{}' with date = {:?}", name, date);
+    pub fn add_person(&self, name: String, birth_date: Option<String>) {
+        log::trace!("adding person '{}' with date = {:?}", name, birth_date);
+        let person = Person { id: String::new(), name, birth_date};
+        self.person_service.save(person).unwrap();
     }
 }

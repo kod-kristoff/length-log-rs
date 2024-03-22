@@ -6,7 +6,7 @@ use std::{ffi::OsString, io::Write};
 mod flags;
 
 pub fn run_repl(app: App) -> rustyline::Result<()> {
-    log::debug!("running repl app={:?}", app);
+    log::debug!("running repl app=");
 
     let mut repl = rustyline::Editor::<()>::new()?;
     loop {
@@ -16,10 +16,10 @@ pub fn run_repl(app: App) -> rustyline::Result<()> {
                 log::trace!("Line: {:?}", line);
                 match respond(&app, &line) {
                     Ok(quit) => {
-                        log::trace!("command succedded");
+                        log::trace!("command succeeded");
 
                         if quit {
-                            log::info!("quiting ...");
+                            log::info!("quitting ...");
                             break;
                         }
                     }
@@ -55,7 +55,7 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
             log::trace!("adding person ...");
             log::trace!("name = {}", name);
             let date = None;
-            app.add_person(name.as_str(), date);
+            app.add_person(name, date);
         }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
