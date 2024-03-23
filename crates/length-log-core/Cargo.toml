@@ -9,3 +9,4 @@ edition = "2021"
 [dependencies]
 chrono.workspace = true
 log.workspace = true
+ulid.workspace = true

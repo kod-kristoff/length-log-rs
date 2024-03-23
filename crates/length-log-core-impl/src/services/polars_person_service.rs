@@ -35,11 +35,9 @@ impl services::PersonService for PolarsPersonService {
         let ids = Series::new("id", vec![id]);
         let names = Series::new("name", vec![name]);
         let epoch = NaiveDate::from_ymd_opt(1970,1,1).unwrap();
-        let start_date = if let Some(start_date) = start_date {
+        let start_date = 
             AnyValue::Date(start_date.signed_duration_since(epoch).num_days() as i32)
-        } else {
-            AnyValue::Null
-        };
+        ;
         let start_dates = Series::from_any_values("start_date", &[start_date], true).unwrap();
         let person = DataFrame::new(vec![ids,names,start_dates]).unwrap();
         self.persons.write().unwrap().extend(&person).unwrap();

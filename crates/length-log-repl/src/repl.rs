@@ -52,11 +52,14 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
     let flags = flags::Repl::from_vec(args.iter().map(OsString::from).collect())
         .map_err(|e| Error::Unknown(e.to_string()))?;
     match flags.subcommand {
-        flags::ReplCmd::AddPerson(flags::AddPerson { name }) => {
+        flags::ReplCmd::AddPerson(flags::AddPerson { name, start_date }) => {
             log::trace!("adding person ...");
             log::trace!("name = {}", name);
-            let date = None;
-            app.add_person(name, date);
+            log::trace!("start_date = {:?}", start_date);
+            if let Err(err) = app.add_person(name, start_date) {
+                log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+            }
         }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;

@@ -4,6 +4,7 @@ xflags::xflags! {
     cmd repl {
         cmd add-person {
             required name: String
+            optional start_date: String
         }
         cmd quit {}
     }
@@ -25,6 +26,7 @@ pub enum ReplCmd {
 #[derive(Debug)]
 pub struct AddPerson {
     pub name: String,
+    pub start_date: Option<String>,
 }
 
 #[derive(Debug)]

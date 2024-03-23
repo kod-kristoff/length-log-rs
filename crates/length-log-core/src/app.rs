@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use chrono::NaiveDate;
 // use crate::error::Error;
@@ -34,7 +34,7 @@ use chrono::NaiveDate;
 //     Person,
 // }
 
-use crate::{models::Person, services::SharedPersonService};
+use crate::{models::Person, services::{ServiceError, SharedPersonService}};
 
 #[derive(Clone)]
 pub struct App {
@@ -48,14 +48,42 @@ impl App {
             person_service
         }
     }
-    pub fn add_person(&self, name: String, start_date: Option<String>) {
+    pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
         log::trace!("adding person '{}' with date = {:?}", name, start_date);
         let start_date = if let Some(start_date_str) = start_date {
-            Some(NaiveDate::from_str(&start_date_str).unwrap())
+            Some(NaiveDate::from_str(&start_date_str)?)
         } else {
             None
         };
-        let person = Person { id: String::new(), name, start_date};
-        self.person_service.save(person).unwrap();
+        let person = Person::with_name_and_start_date(name, start_date) ;
+        self.person_service.save(person)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub enum AppError {
+    BadDate(chrono::ParseError),
+    ServiceError(ServiceError)
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::BadDate(_) => f.write_str("bad date"),
+            Self::ServiceError(_) => f.write_str("ServiceError")
+        }
+    }
+}
+
+impl From<ServiceError> for AppError {
+    fn from(value: ServiceError) -> Self {
+        Self::ServiceError(value)
+    }
+}
+
+impl From<chrono::ParseError> for AppError {
+    fn from(value: chrono::ParseError) -> Self {
+        Self::BadDate(value)
     }
 }
