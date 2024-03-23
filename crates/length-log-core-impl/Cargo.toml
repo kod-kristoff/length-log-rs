@@ -7,5 +7,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# external deps
+chrono.workspace = true
 log.workspace = true
-# polars.workspace = true
+polars = { workspace = true }
+
+# local deps
+length-log-core.workspace = true

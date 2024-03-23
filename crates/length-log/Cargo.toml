@@ -10,5 +10,7 @@ edition = "2021"
 log.workspace = true
 env_logger.workspace = true
 
+# local deps
 length-log-core.workspace = true
+length-log-core-impl.workspace = true
 length-log-repl.workspace = true

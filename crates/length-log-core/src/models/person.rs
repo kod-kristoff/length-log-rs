@@ -1,7 +1,9 @@
+use chrono::NaiveDate;
+
 #[derive(Debug,Default,Clone)]
 pub struct Person {
     pub id: String,
     pub name: String,
-    pub birth_date: Option<String>,
+    pub start_date: Option<NaiveDate>,
 }
 

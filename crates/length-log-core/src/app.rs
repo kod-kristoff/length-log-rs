@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use chrono::NaiveDate;
 // use crate::error::Error;
 // use nom::{bytes::complete::tag, combinator::map, IResult};
 // use polars::prelude::DataFrame;
@@ -45,9 +48,14 @@ impl App {
             person_service
         }
     }
-    pub fn add_person(&self, name: String, birth_date: Option<String>) {
-        log::trace!("adding person '{}' with date = {:?}", name, birth_date);
-        let person = Person { id: String::new(), name, birth_date};
+    pub fn add_person(&self, name: String, start_date: Option<String>) {
+        log::trace!("adding person '{}' with date = {:?}", name, start_date);
+        let start_date = if let Some(start_date_str) = start_date {
+            Some(NaiveDate::from_str(&start_date_str).unwrap())
+        } else {
+            None
+        };
+        let person = Person { id: String::new(), name, start_date};
         self.person_service.save(person).unwrap();
     }
 }

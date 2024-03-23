@@ -5,15 +5,15 @@ members = ["crates/*"]
 [workspace.dependencies]
 # local crates
 length-log-core = { path = "./crates/length-log-core" }
+length-log-core-impl = { path = "./crates/length-log-core-impl" }
 length-log-repl = { path = "./crates/length-log-repl" }
 
 # external crates
-# polars = { version = "0.38", default-features = false }
-rustyline = "10"
-# log = "0"
-# env_logger = "0"
-nom = "7.1"
-shlex = "1.1.0"
-log = "0.4.21"
+chrono = "0.4.35"
 env_logger = "0.11.3"
+log = "0.4.21"
+nom = "7.1"
+polars = { version = "0.38" }
+rustyline = "10"
+shlex = "1.1.0"
 xflags = "0.3.2"
