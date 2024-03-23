@@ -1,14 +1,15 @@
 use crate::Error;
 use length_log_core::App;
-use rustyline::error::ReadlineError;
+use rustyline::{error::ReadlineError, Config, history::FileHistory};
 use std::{ffi::OsString, io::Write};
 
 mod flags;
 
 pub fn run_repl(app: App) -> rustyline::Result<()> {
     log::debug!("running repl app=");
-
-    let mut repl = rustyline::Editor::<()>::new()?;
+    let config = Config::builder().auto_add_history(true).build();
+    let history = FileHistory::new();
+    let mut repl = rustyline::Editor::<(),_>::with_history(config,history)?;
     loop {
         let readline = repl.readline(">> ");
         match readline {
@@ -38,7 +39,7 @@ pub fn run_repl(app: App) -> rustyline::Result<()> {
                 break;
             }
             Err(err) => {
-                log::error!("An error occured: {:?}", err);
+                log::error!("An error occurred: {:?}", err);
                 break;
             }
         }

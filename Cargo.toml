@@ -14,6 +14,6 @@ env_logger = "0.11.3"
 log = "0.4.21"
 nom = "7.1"
 polars = { version = "0.38" }
-rustyline = "10"
+rustyline = "14"
 shlex = "1.1.0"
 xflags = "0.3.2"
