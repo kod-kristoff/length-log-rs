@@ -61,6 +61,16 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
                 eprintln!("Error adding person: {}", err);
             }
         }
+        flags::ReplCmd::ListPersons(_) => {
+            match app.list_persons() {
+                Ok(persons) => println!("{:#?}", persons),
+                Err(err) => {
+                    log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+                }
+                
+            }
+        }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
             std::io::stdout().flush()?;

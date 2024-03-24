@@ -34,7 +34,7 @@ use chrono::NaiveDate;
 //     Person,
 // }
 
-use crate::{models::Person, services::{ServiceError, SharedPersonService}};
+use crate::{models::{self, Person}, services::{ServiceError, SharedPersonService}};
 
 #[derive(Clone)]
 pub struct App {
@@ -58,6 +58,10 @@ impl App {
         let person = Person::with_name_and_start_date(name, start_date) ;
         self.person_service.save(person)?;
         Ok(())
+    }
+
+    pub fn list_persons(&self) -> Result<Vec<models::Person>, AppError> {
+        Ok(self.person_service.get_all()?)
     }
 }
 

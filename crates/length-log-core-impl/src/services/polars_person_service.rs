@@ -1,6 +1,6 @@
 use std::sync::{Arc,RwLock};
 
-use chrono::NaiveDate;
+use chrono::{Days, NaiveDate};
 use length_log_core::{models, services};
 use polars::{datatypes::{AnyValue, DataType}, frame::DataFrame, prelude::NamedFrom, series::Series};
 
@@ -46,6 +46,28 @@ impl services::PersonService for PolarsPersonService {
     }
     fn get_all(&self) -> Result<Vec<models::Person>,services::ServiceError> {
         log::info!("listing all persons");
-        Ok(Vec::new())
+        let read_lock = self.persons.read().unwrap();
+        let persons: Vec<&Series> = read_lock.columns(["id","name","start_date"]).unwrap();
+        let epoch = NaiveDate::from_ymd_opt(1970,1,1).unwrap();
+        let mut result = Vec::new();
+        for row in 0..persons[0].len() {
+            let mut id = String::new();
+            let mut name = String::new();
+            let mut start_date = None;
+            for (i, series) in persons.iter().enumerate() {
+                match i {
+                    0 => id = series.get(row).unwrap().to_string(),
+                    1 => name = series.get(row).unwrap().to_string(),
+                    2 => {
+                        if let AnyValue::Date(num_days) = series.get(row).unwrap().cast(&DataType::Date) {
+                        start_date = epoch.checked_add_days(Days::new(num_days as u64));
+                        }
+                    }
+                    _ => unreachable!()
+                }
+            }
+            result.push(models::Person::new(id, name, start_date));
+        }
+        Ok(result)
     }
 }

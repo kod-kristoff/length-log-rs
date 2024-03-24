@@ -6,6 +6,7 @@ xflags::xflags! {
             required name: String
             optional start_date: String
         }
+        cmd list-persons {}
         cmd quit {}
     }
 }
@@ -20,6 +21,7 @@ pub struct Repl {
 #[derive(Debug)]
 pub enum ReplCmd {
     AddPerson(AddPerson),
+    ListPersons(ListPersons),
     Quit(Quit),
 }
 
@@ -28,6 +30,9 @@ pub struct AddPerson {
     pub name: String,
     pub start_date: Option<String>,
 }
+
+#[derive(Debug)]
+pub struct ListPersons;
 
 #[derive(Debug)]
 pub struct Quit;
