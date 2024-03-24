@@ -1,14 +1,18 @@
 use crate::Error;
 use length_log_core::App;
-use rustyline::{error::ReadlineError, Config, history::FileHistory};
-use std::{ffi::OsString, io::Write};
+use rustyline::{error::ReadlineError, history::{FileHistory, History}, Config};
+use std::{ffi::OsString, io::Write, path::Path};
 
 mod flags;
 
 pub fn run_repl(app: App) -> rustyline::Result<()> {
     log::debug!("running repl app=");
-    let config = Config::builder().auto_add_history(true).build();
-    let history = FileHistory::new();
+    let config = Config::builder().max_history_size(1000).unwrap().auto_add_history(true).build();
+    let mut history = FileHistory::new();
+    let history_path = Path::new("./data/history");
+    if let Err(err) = history.load(history_path) {
+        log::warn!("could not load command history, err = {:?}",err);
+    }
     let mut repl = rustyline::Editor::<(),_>::with_history(config,history)?;
     loop {
         let readline = repl.readline(">> ");
@@ -44,6 +48,7 @@ pub fn run_repl(app: App) -> rustyline::Result<()> {
             }
         }
     }
+    repl.save_history(history_path).unwrap();
     Ok(())
 }
 
