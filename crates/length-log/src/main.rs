@@ -1,7 +1,7 @@
 
 
 use length_log_core::App;
-use length_log_core_impl::services::PolarsPersonService;
+use length_log_core_impl::services::{PolarsDataService, PolarsPersonService};
 use length_log_repl::run_repl;
 
 fn main() {
@@ -11,7 +11,8 @@ fn main() {
         .init();
 
     let person_service = PolarsPersonService::new_shared();
-    let app = App::new(person_service);
+    let data_service = PolarsDataService::new_shared();
+    let app = App::new(person_service, data_service);
     if let Err(err) = run_repl(app) {
         log::error!("{}", err);
         eprintln!("Error occurred: {:?}", err);

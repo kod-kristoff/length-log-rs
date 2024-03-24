@@ -1,6 +1,6 @@
 use std::{fmt, str::FromStr};
 
-use chrono::NaiveDate;
+use chrono::{Local, NaiveDate};
 // use crate::error::Error;
 // use nom::{bytes::complete::tag, combinator::map, IResult};
 // use polars::prelude::DataFrame;
@@ -34,18 +34,20 @@ use chrono::NaiveDate;
 //     Person,
 // }
 
-use crate::{models::{self, Person}, services::{ServiceError, SharedPersonService}};
+use crate::{models::{self, Person}, services::{ServiceError, SharedDataService, SharedPersonService}};
 
 #[derive(Clone)]
 pub struct App {
     person_service: SharedPersonService,
+    data_service: SharedDataService,
 }
 
 impl App {
-    pub fn new(person_service: SharedPersonService) -> Self {
+    pub fn new(person_service: SharedPersonService, data_service: SharedDataService) -> Self {
         log::trace!("creating App ...");
         Self {
-            person_service
+            person_service,
+            data_service,
         }
     }
     pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
@@ -62,6 +64,20 @@ impl App {
 
     pub fn list_persons(&self) -> Result<Vec<models::Person>, AppError> {
         Ok(self.person_service.get_all()?)
+    }
+
+    pub fn add_data(&self, name: &str, date: Option<String>, data: f64) -> Result<(), AppError> {
+        log::trace!("adding datapoint for person '{}' with date = {:?}", name, date);
+        let id = self.person_service.get_id_by_name(name)?;
+        dbg!(&id);
+        let date = if let Some(date_str) = date{
+            NaiveDate::from_str(&date_str)?
+        } else {
+            Local::now().naive_local().date()
+        };
+        self.data_service.save(&id, date, data)?;
+        Ok(())
+
     }
 }
 

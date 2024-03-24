@@ -2,7 +2,7 @@ use std::sync::{Arc,RwLock};
 
 use chrono::{Days, NaiveDate};
 use length_log_core::{models, services};
-use polars::{datatypes::{AnyValue, DataType}, frame::DataFrame, prelude::NamedFrom, series::Series};
+use polars::{datatypes::{AnyValue, DataType}, frame::DataFrame, prelude::NamedFrom, series::{ChunkCompare, Series}};
 
 pub struct PolarsPersonService {
     persons: RwLock<DataFrame>,
@@ -29,6 +29,20 @@ impl services::PersonService for PolarsPersonService {
     fn get_by_name(&self, name: &str) -> Result<Option<models::Person>, services::ServiceError> {
         log::info!("searching for name={}", name);
         Ok(None)
+    }
+    fn get_id_by_name(&self, name: &str) -> Result<String, services::ServiceError> {
+        log::info!("searching id for name={}", name);
+        let persons = self.persons.read().unwrap();
+        let names = persons.column("name").unwrap().str().unwrap();
+        let mask = names.equal(name);
+        let df = persons.filter(&mask).unwrap();
+        println!("{:?}", df);
+        let id = df.column("id").unwrap();
+        println!("{:?}", id);
+        if id.len() == 0 {
+            return Err(format!("No person with name={}", name));
+        }
+        Ok(id.get(0).unwrap().to_string())
     }
     fn save(&self, models::Person {id,name, start_date}: models::Person) -> Result<(), services::ServiceError> {
         log::info!("saving person id={:?} name={} start_date={:?}", id, name, start_date);

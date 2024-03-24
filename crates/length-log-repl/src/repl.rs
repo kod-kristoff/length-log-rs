@@ -76,6 +76,14 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
                 
             }
         }
+        flags::ReplCmd::Add(flags::Add { name, data, date}) => {
+            log::trace!("adding data {} for person {} ...", data, name);
+            if let Err(err) = app.add_data(&name, date, data) {
+                log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+            }
+
+        }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
             std::io::stdout().flush()?;
