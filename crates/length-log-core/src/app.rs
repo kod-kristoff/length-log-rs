@@ -34,7 +34,10 @@ use chrono::{Local, NaiveDate};
 //     Person,
 // }
 
-use crate::{models::{self, Person}, services::{ServiceError, SharedDataService, SharedPersonService}};
+use crate::{
+    models::{self, Person},
+    services::{ServiceError, SharedDataService, SharedPersonService},
+};
 
 #[derive(Clone)]
 pub struct App {
@@ -52,12 +55,13 @@ impl App {
     }
     pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
         log::trace!("adding person '{}' with date = {:?}", name, start_date);
+        
         let start_date = if let Some(start_date_str) = start_date {
             Some(NaiveDate::from_str(&start_date_str)?)
         } else {
             None
         };
-        let person = Person::with_name_and_start_date(name, start_date) ;
+        let person = Person::with_name_and_start_date(name, start_date);
         self.person_service.save(person)?;
         Ok(())
     }
@@ -67,31 +71,34 @@ impl App {
     }
 
     pub fn add_data(&self, name: &str, date: Option<String>, data: f64) -> Result<(), AppError> {
-        log::trace!("adding datapoint for person '{}' with date = {:?}", name, date);
+        log::trace!(
+            "adding datapoint for person '{}' with date = {:?}",
+            name,
+            date
+        );
         let id = self.person_service.get_id_by_name(name)?;
         dbg!(&id);
-        let date = if let Some(date_str) = date{
+        let date = if let Some(date_str) = date {
             NaiveDate::from_str(&date_str)?
         } else {
             Local::now().naive_local().date()
         };
         self.data_service.save(&id, date, data)?;
         Ok(())
-
     }
 }
 
 #[derive(Debug)]
 pub enum AppError {
     BadDate(chrono::ParseError),
-    ServiceError(ServiceError)
+    ServiceError(ServiceError),
 }
 
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BadDate(_) => f.write_str("bad date"),
-            Self::ServiceError(_) => f.write_str("ServiceError")
+            Self::ServiceError(_) => f.write_str("ServiceError"),
         }
     }
 }

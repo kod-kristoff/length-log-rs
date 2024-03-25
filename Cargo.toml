@@ -10,11 +10,14 @@ length-log-repl = { path = "./crates/length-log-repl" }
 
 # external crates
 chrono = "0.4.35"
+directories = "5.0.1"
 env_logger = "0.11.3"
 log = "0.4.21"
+miette = "7.2.0"
 nom = "7.1"
 polars = { version = "0.38" }
 rustyline = "14"
 shlex = "1.1.0"
+thiserror = "1.0.58"
 ulid = "1.1.2"
 xflags = "0.3.2"

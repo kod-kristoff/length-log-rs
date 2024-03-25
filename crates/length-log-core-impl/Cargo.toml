@@ -10,7 +10,9 @@ edition = "2021"
 # external deps
 chrono.workspace = true
 log.workspace = true
-polars = { workspace = true }
+miette.workspace = true
+polars = { workspace = true, features = ["parquet"] }
+thiserror.workspace = true
 
 # local deps
 length-log-core.workspace = true

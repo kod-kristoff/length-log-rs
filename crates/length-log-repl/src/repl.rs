@@ -1,19 +1,27 @@
 use crate::Error;
 use length_log_core::App;
-use rustyline::{error::ReadlineError, history::{FileHistory, History}, Config};
+use rustyline::{
+    error::ReadlineError,
+    history::{FileHistory, History},
+    Config,
+};
 use std::{ffi::OsString, io::Write, path::Path};
 
 mod flags;
 
 pub fn run_repl(app: App) -> rustyline::Result<()> {
     log::debug!("running repl app=");
-    let config = Config::builder().max_history_size(1000).unwrap().auto_add_history(true).build();
+    let config = Config::builder()
+        .max_history_size(1000)
+        .unwrap()
+        .auto_add_history(true)
+        .build();
     let mut history = FileHistory::new();
     let history_path = Path::new("./data/history");
     if let Err(err) = history.load(history_path) {
-        log::warn!("could not load command history, err = {:?}",err);
+        log::warn!("could not load command history, err = {:?}", err);
     }
-    let mut repl = rustyline::Editor::<(),_>::with_history(config,history)?;
+    let mut repl = rustyline::Editor::<(), _>::with_history(config, history)?;
     loop {
         let readline = repl.readline(">> ");
         match readline {
@@ -66,23 +74,19 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
                 eprintln!("Error adding person: {}", err);
             }
         }
-        flags::ReplCmd::ListPersons(_) => {
-            match app.list_persons() {
-                Ok(persons) => println!("{:#?}", persons),
-                Err(err) => {
-                    log::error!("error adding person: err={:?}", err);
+        flags::ReplCmd::ListPersons(_) => match app.list_persons() {
+            Ok(persons) => println!("{:#?}", persons),
+            Err(err) => {
+                log::error!("error adding person: err={:?}", err);
                 eprintln!("Error adding person: {}", err);
-                }
-                
             }
-        }
-        flags::ReplCmd::Add(flags::Add { name, data, date}) => {
+        },
+        flags::ReplCmd::Add(flags::Add { name, data, date }) => {
             log::trace!("adding data {} for person {} ...", data, name);
             if let Err(err) = app.add_data(&name, date, data) {
                 log::error!("error adding person: err={:?}", err);
                 eprintln!("Error adding person: {}", err);
             }
-
         }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
