@@ -5,7 +5,7 @@ use std::{
 use chrono::{Days, NaiveDate};
 use length_log_core::{models, services};
 use polars::{
-    datatypes::{AnyValue, DataType, Field, ArrowDataType},
+    datatypes::{AnyValue, DataType, ArrowDataType},
     frame::DataFrame,
     io::{csv::{CsvReader, CsvWriter}, SerReader, SerWriter},
     prelude::{NamedFrom, Schema,ArrowField},
