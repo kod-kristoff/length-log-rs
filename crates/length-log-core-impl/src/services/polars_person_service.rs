@@ -5,10 +5,10 @@ use std::{
 use chrono::{Days, NaiveDate};
 use length_log_core::{models, services};
 use polars::{
-    datatypes::{AnyValue, DataType},
+    datatypes::{AnyValue, DataType, Field, ArrowDataType},
     frame::DataFrame,
     io::{csv::{CsvReader, CsvWriter}, SerReader, SerWriter},
-    prelude::NamedFrom,
+    prelude::{NamedFrom, Schema,ArrowField},
     series::{ChunkCompare, Series},
 };
 
@@ -38,11 +38,12 @@ impl PolarsPersonService {
     pub fn load_or_create(
         path: PathBuf,
     ) -> Result<Arc<Self>, PolarsServiceError> {
+        let schema = Arc::new(Schema::from_iter(&[ArrowField::new("id", ArrowDataType::Utf8, false), ArrowField::new("name", ArrowDataType::Utf8,false), ArrowField::new("start_date", ArrowDataType::Date32,false)]));
         match CsvReader::from_path(&path) {
             Ok(csv_reader) => {
                 log::debug!("reading file '{}'", path.display());
                 Ok(Arc::new(Self {
-                    persons: RwLock::new(csv_reader.infer_schema(None).has_header(true).finish()?),
+                    persons: RwLock::new(csv_reader.with_schema(Some(schema.clone())).infer_schema(None).has_header(true).finish()?),
                     path: Some(path),
                 }))
             }
@@ -116,6 +117,7 @@ impl services::PersonService for PolarsPersonService {
     }
     fn get_all(&self) -> Result<Vec<models::Person>, services::ServiceError> {
         log::info!("listing all persons");
+        println!("{:?}", self.persons);
         let read_lock = self.persons.read().unwrap();
         let persons: Vec<&Series> = read_lock.columns(["id", "name", "start_date"]).unwrap();
         let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
@@ -133,6 +135,8 @@ impl services::PersonService for PolarsPersonService {
                             series.get(row).unwrap().cast(&DataType::Date)
                         {
                             start_date = epoch.checked_add_days(Days::new(num_days as u64));
+                        } else {
+                            todo!("handle this case");
                         }
                     }
                     _ => unreachable!(),
