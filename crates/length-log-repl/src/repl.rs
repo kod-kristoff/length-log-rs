@@ -1,14 +1,27 @@
 use crate::Error;
 use length_log_core::App;
-use rustyline::error::ReadlineError;
-use std::{ffi::OsString, io::Write};
+use rustyline::{
+    error::ReadlineError,
+    history::{FileHistory, History},
+    Config,
+};
+use std::{ffi::OsString, io::Write, path::Path};
 
 mod flags;
 
 pub fn run_repl(app: App) -> rustyline::Result<()> {
-    log::debug!("running repl app={:?}", app);
-
-    let mut repl = rustyline::Editor::<()>::new()?;
+    log::debug!("running repl app=");
+    let config = Config::builder()
+        .max_history_size(1000)
+        .unwrap()
+        .auto_add_history(true)
+        .build();
+    let mut history = FileHistory::new();
+    let history_path = Path::new("./data/history");
+    if let Err(err) = history.load(history_path) {
+        log::warn!("could not load command history, err = {:?}", err);
+    }
+    let mut repl = rustyline::Editor::<(), _>::with_history(config, history)?;
     loop {
         let readline = repl.readline(">> ");
         match readline {
@@ -16,10 +29,10 @@ pub fn run_repl(app: App) -> rustyline::Result<()> {
                 log::trace!("Line: {:?}", line);
                 match respond(&app, &line) {
                     Ok(quit) => {
-                        log::trace!("command succedded");
+                        log::trace!("command succeeded");
 
                         if quit {
-                            log::info!("quiting ...");
+                            log::info!("quitting ...");
                             break;
                         }
                     }
@@ -38,11 +51,12 @@ pub fn run_repl(app: App) -> rustyline::Result<()> {
                 break;
             }
             Err(err) => {
-                log::error!("An error occured: {:?}", err);
+                log::error!("An error occurred: {:?}", err);
                 break;
             }
         }
     }
+    repl.save_history(history_path).unwrap();
     Ok(())
 }
 
@@ -51,11 +65,28 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
     let flags = flags::Repl::from_vec(args.iter().map(OsString::from).collect())
         .map_err(|e| Error::Unknown(e.to_string()))?;
     match flags.subcommand {
-        flags::ReplCmd::AddPerson(flags::AddPerson { name }) => {
+        flags::ReplCmd::AddPerson(flags::AddPerson { name, start_date }) => {
             log::trace!("adding person ...");
             log::trace!("name = {}", name);
-            let date = None;
-            app.add_person(name.as_str(), date);
+            log::trace!("start_date = {:?}", start_date);
+            if let Err(err) = app.add_person(name, start_date) {
+                log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+            }
+        }
+        flags::ReplCmd::ListPersons(_) => match app.list_persons() {
+            Ok(persons) => println!("{:#?}", persons),
+            Err(err) => {
+                log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+            }
+        },
+        flags::ReplCmd::Add(flags::Add { name, data, date }) => {
+            log::trace!("adding data {} for person {} ...", data, name);
+            if let Err(err) = app.add_data(&name, date, data) {
+                log::error!("error adding person: err={:?}", err);
+                eprintln!("Error adding person: {}", err);
+            }
         }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
