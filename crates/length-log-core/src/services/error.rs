@@ -1,4 +1,3 @@
-
 use miette::Diagnostic;
 
 #[derive(Debug, Diagnostic, thiserror::Error)]

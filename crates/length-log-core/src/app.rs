@@ -55,7 +55,7 @@ impl App {
     }
     pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
         log::trace!("adding person '{}' with date = {:?}", name, start_date);
-        
+
         let start_date = if let Some(start_date_str) = start_date {
             Some(NaiveDate::from_str(&start_date_str)?)
         } else {

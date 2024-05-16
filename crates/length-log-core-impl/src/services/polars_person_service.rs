@@ -1,14 +1,19 @@
 use std::{
-    fs::File, path::PathBuf, sync::{Arc, RwLock}
+    fs::File,
+    path::PathBuf,
+    sync::{Arc, RwLock},
 };
 
 use chrono::{Days, NaiveDate};
 use length_log_core::{models, services};
 use polars::{
-    datatypes::{AnyValue, DataType, ArrowDataType},
+    datatypes::{AnyValue, ArrowDataType, DataType},
     frame::DataFrame,
-    io::{csv::{CsvReader, CsvWriter}, SerReader, SerWriter},
-    prelude::{NamedFrom, Schema,ArrowField},
+    io::{
+        csv::{CsvReader, CsvWriter},
+        SerReader, SerWriter,
+    },
+    prelude::{ArrowField, NamedFrom, Schema},
     series::{ChunkCompare, Series},
 };
 
@@ -35,15 +40,23 @@ impl PolarsPersonService {
     pub fn new_shared() -> services::SharedPersonService {
         Arc::new(Self::default())
     }
-    pub fn load_or_create(
-        path: PathBuf,
-    ) -> Result<Arc<Self>, PolarsServiceError> {
-        let schema = Arc::new(Schema::from_iter(&[ArrowField::new("id", ArrowDataType::Utf8, false), ArrowField::new("name", ArrowDataType::Utf8,false), ArrowField::new("start_date", ArrowDataType::Date32,false)]));
+    pub fn load_or_create(path: PathBuf) -> Result<Arc<Self>, PolarsServiceError> {
+        let schema = Arc::new(Schema::from_iter(&[
+            ArrowField::new("id", ArrowDataType::Utf8, false),
+            ArrowField::new("name", ArrowDataType::Utf8, false),
+            ArrowField::new("start_date", ArrowDataType::Date32, false),
+        ]));
         match CsvReader::from_path(&path) {
             Ok(csv_reader) => {
                 log::debug!("reading file '{}'", path.display());
                 Ok(Arc::new(Self {
-                    persons: RwLock::new(csv_reader.with_schema(Some(schema.clone())).infer_schema(None).has_header(true).finish()?),
+                    persons: RwLock::new(
+                        csv_reader
+                            .with_schema(Some(schema.clone()))
+                            .infer_schema(None)
+                            .has_header(true)
+                            .finish()?,
+                    ),
                     path: Some(path),
                 }))
             }

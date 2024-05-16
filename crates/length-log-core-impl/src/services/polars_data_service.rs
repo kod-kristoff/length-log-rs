@@ -9,7 +9,10 @@ use length_log_core::services;
 use polars::{
     datatypes::{AnyValue, DataType},
     frame::DataFrame,
-    io::{parquet::{ParquetReader, ParquetWriter}, SerReader},
+    io::{
+        parquet::{ParquetReader, ParquetWriter},
+        SerReader,
+    },
     prelude::NamedFrom,
     series::Series,
 };
@@ -38,9 +41,7 @@ impl PolarsDataService {
     pub fn new_shared() -> services::SharedDataService {
         Arc::new(Self::default())
     }
-    pub fn load_or_create(
-        path: PathBuf,
-    ) -> Result<Arc<Self>, PolarsServiceError> {
+    pub fn load_or_create(path: PathBuf) -> Result<Arc<Self>, PolarsServiceError> {
         match File::open(&path) {
             Ok(file) => {
                 let datapoints = ParquetReader::new(file).finish()?;
