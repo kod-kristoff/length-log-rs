@@ -4,8 +4,8 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use chrono::NaiveDate;
-use length_log_core::services;
+use chrono::{Days, NaiveDate};
+use length_log_core::{models::DataPoint, services};
 use polars::{
     datatypes::{AnyValue, DataType},
     frame::DataFrame,
@@ -84,5 +84,51 @@ impl services::DataService for PolarsDataService {
         self.datapoints.write().unwrap().extend(&datapoint).unwrap();
         println!("{:?}", self.datapoints);
         Ok(())
+    }
+
+    fn get_all(&self) -> Result<Vec<length_log_core::models::DataPoint>, services::ServiceError> {
+        log::info!("loading all data");
+        let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
+        let mut result = Vec::new();
+        let datapoints = self.datapoints.read().unwrap();
+        let mut iters = datapoints
+            .columns(["id", "date", "data"])
+            .unwrap()
+            .iter()
+            .map(|s| s.iter())
+            .collect::<Vec<_>>();
+
+        let mut id = None;
+        let mut date = None;
+        let mut data = None;
+        for iter in &mut iters {
+            let part = iter.next().unwrap();
+
+            println!("{:?}", part);
+            if id.is_none() {
+                id = Some(part.to_string());
+            } else if date.is_none() {
+                if let AnyValue::Date(num_days) = part.cast(&DataType::Date) {
+                    date = epoch.checked_add_days(Days::new(num_days as u64));
+                } else {
+                    todo!("handle this case");
+                }
+            } else if data.is_none() {
+                if let AnyValue::Float64(value) = part.cast(&DataType::Float64) {
+                    data = Some(value);
+                } else {
+                    todo!("handle this case");
+                }
+            }
+
+            if id.is_some() && date.is_some() && data.is_some() {
+                result.push(DataPoint::new(
+                    id.take().unwrap(),
+                    date.take().unwrap(),
+                    data.take().unwrap(),
+                ));
+            }
+        }
+        Ok(result)
     }
 }

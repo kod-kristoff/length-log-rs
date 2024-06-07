@@ -86,6 +86,10 @@ impl App {
         self.data_service.save(&id, date, data)?;
         Ok(())
     }
+
+    pub fn list_data(&self) -> Result<Vec<models::DataPoint>, AppError> {
+        Ok(self.data_service.get_all()?)
+    }
 }
 
 #[derive(Debug)]

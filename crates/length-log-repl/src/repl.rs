@@ -88,6 +88,16 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
                 eprintln!("Error adding person: {}", err);
             }
         }
+        flags::ReplCmd::ListData(_) => {
+            log::trace!("listing all data");
+            match app.list_data() {
+                Ok(data) => println!("{:#?}", data),
+                Err(err) => {
+                    log::error!("error adding person: err={:?}", err);
+                    eprintln!("Error adding person: {}", err);
+                }
+            }
+        }
         flags::ReplCmd::Quit(_) => {
             writeln!(std::io::stdout(), "Exiting ...")?;
             std::io::stdout().flush()?;

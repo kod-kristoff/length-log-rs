@@ -12,6 +12,7 @@ xflags::xflags! {
             required data: f64
             optional date: String
         }
+        cmd list-data {}
         cmd quit {}
     }
 }
@@ -28,6 +29,7 @@ pub enum ReplCmd {
     AddPerson(AddPerson),
     ListPersons(ListPersons),
     Add(Add),
+    ListData(ListData),
     Quit(Quit),
 }
 
@@ -46,6 +48,9 @@ pub struct Add {
     pub data: f64,
     pub date: Option<String>,
 }
+
+#[derive(Debug)]
+pub struct ListData;
 
 #[derive(Debug)]
 pub struct Quit;
