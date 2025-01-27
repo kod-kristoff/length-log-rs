@@ -14,7 +14,7 @@ directories = "5.0.1"
 env_logger = "0.11.3"
 log = "0.4.21"
 miette = "7.2.0"
-nom = "7.1"
+nom = "8.0"
 polars = { version = "0.38" }
 rustyline = "14"
 shlex = "1.1.0"
