@@ -1,26 +1,15 @@
 use std::{error, fmt, io};
-#[derive(Debug)]
+
+use length_log_core::models::PersonNameError;
+#[derive(Debug, thiserror::Error, miette::Diagnostic)]
 pub enum Error {
+    #[error("Invalid quoting '{0}'")]
     InvalidQuoting(String),
-    Io(io::Error),
+    #[error(transparent)]
+    Io(#[from] io::Error),
+    #[error(transparent)]
+    BadPersonName(#[from] PersonNameError),
+    #[error("Unknown '{0}'")]
     Unknown(String),
 }
 pub type Result<T> = std::result::Result<T, Error>;
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Error::InvalidQuoting(ref err) => write!(f, "Invalid quoting: '{}'", err),
-            Error::Io(ref err) => write!(f, "IO error: {}", err),
-            Error::Unknown(ref err) => write!(f, "Unknown error: {}", err),
-        }
-    }
-}
-
-impl error::Error for Error {}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::Io(err)
-    }
-}

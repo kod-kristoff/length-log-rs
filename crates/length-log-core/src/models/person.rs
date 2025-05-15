@@ -5,12 +5,20 @@ use chrono::{Local, NaiveDate};
 #[derive(Debug, Clone)]
 pub struct AddPersonRequest {
     name: PersonName,
-    startday: Option<NaiveDate>,
+    start_date: Option<NaiveDate>,
 }
 
 impl AddPersonRequest {
-    pub fn new(name: PersonName, startday: Option<NaiveDate>) -> Self {
-        Self { name, startday }
+    pub fn new(name: PersonName, start_date: Option<NaiveDate>) -> Self {
+        Self { name, start_date }
+    }
+
+    pub fn name(&self) -> &PersonName {
+        &self.name
+    }
+
+    pub fn start_date(&self) -> Option<NaiveDate> {
+        self.start_date
     }
 }
 
@@ -23,8 +31,9 @@ impl fmt::Display for PersonName {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, thiserror::Error, miette::Diagnostic)]
 pub enum PersonNameError {
+    #[error("PersonName can't be empty.")]
     Empty,
 }
 
@@ -41,12 +50,19 @@ impl PersonName {
 #[derive(Debug, Clone)]
 pub struct Person {
     name: PersonName,
-    startday: NaiveDate,
+    start_date: NaiveDate,
 }
 
 impl Person {
-    pub fn new(name: PersonName, startday: NaiveDate) -> Self {
-        Self { name, startday }
+    pub fn new(name: PersonName, start_date: NaiveDate) -> Self {
+        Self { name, start_date }
+    }
+    pub fn name(&self) -> &PersonName {
+        &self.name
+    }
+
+    pub fn start_date(&self) -> NaiveDate {
+        self.start_date
     }
 }
 
@@ -56,6 +72,17 @@ pub enum AddPersonError {
     Duplicate { name: PersonName },
     #[error("Unknown error")]
     Unknown(miette::Report),
+}
+
+impl From<AddPersonRequest> for Person {
+    fn from(value: AddPersonRequest) -> Self {
+        Self {
+            name: value.name,
+            start_date: value
+                .start_date
+                .unwrap_or_else(|| Local::now().naive_local().date()),
+        }
+    }
 }
 // #[derive(Debug, Default, Clone)]
 // pub struct Person {

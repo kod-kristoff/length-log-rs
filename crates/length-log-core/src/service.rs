@@ -35,58 +35,78 @@ use chrono::{Local, NaiveDate};
 // }
 
 use crate::{
-    models::{self, Person},
-    services::{ServiceError, SharedDataService, SharedPersonService},
+    models::{self, AddPersonRequest, Person},
+    ports::{
+        person::{PersonRepository, PersonService},
+        ServiceError,
+    },
 };
 
 #[derive(Clone)]
-pub struct App {
-    person_service: SharedPersonService,
-    data_service: SharedDataService,
+pub struct Service<PR, DR> {
+    person_repo: PR,
+    data_repo: DR,
 }
 
-impl App {
-    pub fn new(person_service: SharedPersonService, data_service: SharedDataService) -> Self {
-        log::trace!("creating App ...");
+impl<PR, DR> Service<PR, DR> {
+    pub fn new(person_repo: PR, data_repo: DR) -> Self {
+        log::trace!("creating Service ...");
         Self {
-            person_service,
-            data_service,
+            person_repo,
+            data_repo,
         }
     }
-    pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
-        log::trace!("adding person '{}' with date = {:?}", name, start_date);
-
-        let start_date = if let Some(start_date_str) = start_date {
-            Some(NaiveDate::from_str(&start_date_str)?)
-        } else {
-            None
-        };
-        let person = Person::with_name_and_start_date(name, start_date);
-        self.person_service.save(person)?;
-        Ok(())
-    }
-
-    pub fn list_persons(&self) -> Result<Vec<models::Person>, AppError> {
-        Ok(self.person_service.get_all()?)
-    }
-
-    pub fn add_data(&self, name: &str, date: Option<String>, data: f64) -> Result<(), AppError> {
+}
+impl<PR, DR> PersonService for Service<PR, DR>
+where
+    PR: PersonRepository,
+{
+    fn add_person(&self, req: models::AddPersonRequest) -> Result<Person, models::AddPersonError> {
+        let person: Person = req.into();
         log::trace!(
-            "adding datapoint for person '{}' with date = {:?}",
-            name,
-            date
+            "adding person '{}' with date = {:?}",
+            person.name(),
+            person.start_date()
         );
-        let id = self.person_service.get_id_by_name(name)?;
-        dbg!(&id);
-        let date = if let Some(date_str) = date {
-            NaiveDate::from_str(&date_str)?
-        } else {
-            Local::now().naive_local().date()
-        };
-        self.data_service.save(&id, date, data)?;
-        Ok(())
+
+        self.person_repo.save(&person)?;
+        Ok(person)
     }
 }
+//     pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {
+//         log::trace!("adding person '{}' with date = {:?}", name, start_date);
+//
+//         let start_date = if let Some(start_date_str) = start_date {
+//             Some(NaiveDate::from_str(&start_date_str)?)
+//         } else {
+//             None
+//         };
+//         let person = Person::with_name_and_start_date(name, start_date);
+//         self.person_service.save(person)?;
+//         Ok(())
+//     }
+//
+//     pub fn list_persons(&self) -> Result<Vec<models::Person>, AppError> {
+//         Ok(self.person_service.get_all()?)
+//     }
+//
+//     pub fn add_data(&self, name: &str, date: Option<String>, data: f64) -> Result<(), AppError> {
+//         log::trace!(
+//             "adding datapoint for person '{}' with date = {:?}",
+//             name,
+//             date
+//         );
+//         let id = self.person_service.get_id_by_name(name)?;
+//         dbg!(&id);
+//         let date = if let Some(date_str) = date {
+//             NaiveDate::from_str(&date_str)?
+//         } else {
+//             Local::now().naive_local().date()
+//         };
+//         self.data_service.save(&id, date, data)?;
+//         Ok(())
+//     }
+// }
 
 #[derive(Debug)]
 pub enum AppError {
