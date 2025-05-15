@@ -10,12 +10,12 @@ use polars::{
     datatypes::{AnyValue, DataType},
     frame::DataFrame,
     io::{
-        parquet::{ParquetReader, ParquetWriter},
         SerReader,
     },
     prelude::NamedFrom,
     series::Series,
 };
+use polars::prelude::{ParquetReader, ParquetWriter};
 
 use super::PolarsServiceError;
 

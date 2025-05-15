@@ -10,12 +10,12 @@ use polars::{
     datatypes::{AnyValue, ArrowDataType, DataType},
     frame::DataFrame,
     io::{
-        csv::{CsvReader, CsvWriter},
         SerReader, SerWriter,
     },
     prelude::{ArrowField, NamedFrom, Schema},
-    series::{ChunkCompare, Series},
+    series::{ Series},
 };
+use polars::prelude::{ChunkCompareEq,CsvReader, CsvWriter, CsvReadOptions};
 
 use super::PolarsServiceError;
 
@@ -26,10 +26,10 @@ pub struct PolarsPersonService {
 
 impl Default for PolarsPersonService {
     fn default() -> Self {
-        let ids = Series::new_empty("id", &DataType::String);
-        let names = Series::new_empty("name", &DataType::String);
-        let start_dates = Series::new_empty("start_date", &DataType::Date);
-        let persons = RwLock::new(DataFrame::new(vec![ids, names, start_dates]).unwrap());
+        let ids = Series::new_empty("id".into(), &DataType::String);
+        let names = Series::new_empty("name".into(), &DataType::String);
+        let start_dates = Series::new_empty("start_date".into(), &DataType::Date);
+        let persons = RwLock::new(DataFrame::new(vec![ids.into(), names.into(), start_dates.into()]).unwrap());
         Self {
             persons,
             path: None,
@@ -41,24 +41,10 @@ impl PolarsPersonService {
         Arc::new(Self::default())
     }
     pub fn load_or_create(path: PathBuf) -> Result<Arc<Self>, PolarsServiceError> {
-        let schema = Arc::new(Schema::from_iter(&[
-            ArrowField::new("id", ArrowDataType::Utf8, false),
-            ArrowField::new("name", ArrowDataType::Utf8, false),
-            ArrowField::new("start_date", ArrowDataType::Date32, false),
-        ]));
-        match CsvReader::from_path(&path) {
-            Ok(csv_reader) => {
-                log::debug!("reading file '{}'", path.display());
-                Ok(Arc::new(Self {
-                    persons: RwLock::new(
-                        csv_reader
-                            .with_schema(Some(schema.clone()))
-                            .infer_schema(None)
-                            .has_header(true)
-                            .finish()?,
-                    ),
-                    path: Some(path),
-                }))
+        match Self::try_load(&path) {
+        // match CsvReader::from_path(&path) {
+            Ok(arc_self) => {
+                Ok(arc_self)
             }
             Err(err) => {
                 log::warn!(
@@ -72,6 +58,28 @@ impl PolarsPersonService {
                 }))
             }
         }
+    }
+
+    fn try_load(path: &Path) -> Result<Arc<Self>, PolarsServiceError> {
+        log::debug!("reading file '{}'", path.display());
+        let schema = Arc::new(Schema::from_iter(&[
+            ArrowField::new("id".into(), ArrowDataType::Utf8, false),
+            ArrowField::new("name".into(), ArrowDataType::Utf8, false),
+            ArrowField::new("start_date".into(), ArrowDataType::Date32, false),
+        ]));
+        let df = CsvReadOptions::default()
+            .with_has_header(true)
+            .with_schema(Some(schema))
+            .with_parse_options(CsvParseOptions::default().with_try_parse_dates(true))
+    .try_into_reader_with_file_path(Some(path))?
+    .finish()?;
+
+        Ok(Arc::new(Self {
+            persons: RwLock::new(
+                df
+            ),
+            path: Some(path.into())
+        }))
     }
 
     pub fn dump(&self) -> Result<(), PolarsServiceError> {
@@ -118,12 +126,12 @@ impl services::PersonService for PolarsPersonService {
             name,
             start_date
         );
-        let ids = Series::new("id", vec![id]);
-        let names = Series::new("name", vec![name]);
+        let ids = Series::new("id".into(), vec![id]);
+        let names = Series::new("name".into(), vec![name]);
         let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
         let start_date = AnyValue::Date(start_date.signed_duration_since(epoch).num_days() as i32);
-        let start_dates = Series::from_any_values("start_date", &[start_date], true).unwrap();
-        let person = DataFrame::new(vec![ids, names, start_dates]).unwrap();
+        let start_dates = Series::from_any_values("start_date".into(), &[start_date], true).unwrap();
+        let person = DataFrame::new(vec![ids.into(), names.into(), start_dates.into()]).unwrap();
         self.persons.write().unwrap().extend(&person).unwrap();
         log::debug!("persons={:?}", self.persons);
         Ok(())
@@ -132,7 +140,7 @@ impl services::PersonService for PolarsPersonService {
         log::info!("listing all persons");
         println!("{:?}", self.persons);
         let read_lock = self.persons.read().unwrap();
-        let persons: Vec<&Series> = read_lock.columns(["id", "name", "start_date"]).unwrap();
+        let persons = read_lock.columns(["id", "name", "start_date"]).unwrap();
         let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
         let mut result = Vec::new();
         for row in 0..persons[0].len() {
