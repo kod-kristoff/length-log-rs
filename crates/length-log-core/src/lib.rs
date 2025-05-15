@@ -1,5 +1,6 @@
-mod app;
-pub mod models;
-pub mod services;
+pub use service::Service;
 
-pub use app::App;
+pub mod models;
+pub mod ports;
+mod service;
+
