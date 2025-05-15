@@ -1,13 +1,6 @@
-use std::sync::Arc;
-
-pub use data_service::DataService;
 pub use error::ServiceError;
-pub use person_service::PersonService;
 
-pub type SharedPersonService = Arc<dyn PersonService>;
-pub type SharedDataService = Arc<dyn DataService>;
-
-mod data_service;
+pub mod data;
 mod error;
 pub mod impls;
-mod person_service;
+pub mod person;
