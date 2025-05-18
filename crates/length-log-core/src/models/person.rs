@@ -31,6 +31,12 @@ impl fmt::Display for PersonName {
     }
 }
 
+impl PersonName {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 #[derive(Debug, Clone, thiserror::Error, miette::Diagnostic)]
 pub enum PersonNameError {
     #[error("PersonName can't be empty.")]

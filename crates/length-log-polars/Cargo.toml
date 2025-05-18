@@ -1,0 +1,10 @@
+[package]
+name = "length-log-polars"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+chrono.workspace = true
+length-log-core.workspace = true
+log.workspace = true
+polars = { workspace = true, features = ["parquet"] }
