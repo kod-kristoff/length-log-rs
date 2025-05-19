@@ -37,8 +37,9 @@ use chrono::{Local, NaiveDate};
 use crate::{
     models::{self, AddPersonRequest, Person},
     ports::{
+        data::{DataRepository, DataService},
         person::{PersonRepository, PersonService},
-        ServiceError,
+        LengthLogService, ServiceError,
     },
 };
 
@@ -71,6 +72,33 @@ where
 
         self.person_repo.save(&person)?;
         Ok(person)
+    }
+}
+
+impl<PR, DR> DataService for Service<PR, DR>
+where
+    DR: DataRepository,
+{
+    fn add_datapoint(
+        &self,
+        req: models::datapoint::AddDatapointRequest,
+    ) -> Result<(), ServiceError> {
+        todo!()
+    }
+}
+
+impl<PR, DR> LengthLogService for Service<PR, DR>
+where
+    PR: PersonRepository,
+    DR: DataRepository,
+{
+    fn list_persons(&self) -> Result<Vec<Person>, ServiceError> {
+        todo!()
+    }
+    fn save(&self) -> miette::Result<()> {
+        self.person_repo.dump()?;
+        self.data_repo.dump()?;
+        Ok(())
     }
 }
 //     pub fn add_person(&self, name: String, start_date: Option<String>) -> Result<(), AppError> {

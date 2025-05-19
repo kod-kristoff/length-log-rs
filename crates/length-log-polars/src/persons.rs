@@ -5,6 +5,7 @@ use std::{
 };
 
 use length_log_core::{models::AddPersonError, ports::person::PersonRepository};
+use miette::IntoDiagnostic;
 use polars::{
     error::PolarsError,
     frame::DataFrame,
@@ -35,6 +36,12 @@ impl Default for PolarsPersonRepo {
 }
 
 impl PolarsPersonRepo {
+    pub fn with_path(path: PathBuf) -> Self {
+        Self {
+            path: Some(path),
+            ..Default::default()
+        }
+    }
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, PolarsError> {
         log::debug!("Reading PolarsPersonRepo from {}", path.as_ref().display());
         let schema = Arc::new(Schema::from_iter(vec![
@@ -65,16 +72,6 @@ impl PolarsPersonRepo {
             }
         }
     }
-
-    pub fn dump(&self) -> Result<(), PolarsError> {
-        let mut file = File::create(self.path.as_ref().unwrap()).unwrap();
-        let mut persons = self.persons.write().unwrap();
-        CsvWriter::new(&mut file)
-            .include_header(true)
-            .with_separator(b',')
-            .finish(&mut persons)?;
-        Ok(())
-    }
 }
 
 impl PersonRepository for PolarsPersonRepo {
@@ -100,6 +97,16 @@ impl PersonRepository for PolarsPersonRepo {
         let person = DataFrame::new(vec![names, start_dates]).unwrap();
         self.persons.write().unwrap().extend(&person).unwrap();
         log::debug!("persons ={:?}", self.persons);
+        Ok(())
+    }
+    fn dump(&self) -> miette::Result<()> {
+        let mut file = File::create(self.path.as_ref().unwrap()).unwrap();
+        let mut persons = self.persons.write().unwrap();
+        CsvWriter::new(&mut file)
+            .include_header(true)
+            .with_separator(b',')
+            .finish(&mut persons)
+            .into_diagnostic()?;
         Ok(())
     }
 }

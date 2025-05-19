@@ -7,4 +7,5 @@ edition = "2024"
 chrono.workspace = true
 length-log-core.workspace = true
 log.workspace = true
+miette.workspace = true
 polars = { workspace = true, features = ["parquet"] }

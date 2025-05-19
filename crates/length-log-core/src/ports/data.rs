@@ -9,4 +9,5 @@ pub trait DataService {
 }
 pub trait DataRepository {
     fn save(&self, name: &PersonName, date: NaiveDate, value: f64) -> Result<(), ServiceError>;
+    fn dump(&self) -> miette::Result<()>;
 }

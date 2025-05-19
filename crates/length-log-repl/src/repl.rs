@@ -25,10 +25,16 @@ pub struct ReplApp<S> {
     history_path: PathBuf,
 }
 
-pub struct ReplAppConfig {}
+#[derive(Debug, Clone)]
+pub struct ReplAppConfig {
+    pub history_path: PathBuf,
+}
 
 impl<S> ReplApp<S> {
-    pub fn new(length_log_service: S, config: ReplAppConfig) -> miette::Result<Self> {
+    pub fn new(
+        length_log_service: S,
+        ReplAppConfig { history_path }: ReplAppConfig,
+    ) -> miette::Result<Self> {
         log::debug!("creating ReplApp=");
         let config = Config::builder()
             .max_history_size(1000)
@@ -36,7 +42,6 @@ impl<S> ReplApp<S> {
             .auto_add_history(true)
             .build();
         let mut history = FileHistory::new();
-        let history_path = PathBuf::from("./data/history");
         if let Err(err) = history.load(&history_path) {
             log::warn!("could not load command history, err = {:?}", err);
         }
@@ -48,18 +53,18 @@ impl<S> ReplApp<S> {
             history_path,
         })
     }
-
-    pub fn shut_down(&mut self) -> miette::Result<()> {
-        self.repl
-            .save_history(&self.history_path)
-            .into_diagnostic()?;
-        Ok(())
-    }
 }
 impl<S> ReplApp<S>
 where
     S: LengthLogService,
 {
+    pub fn shut_down(&mut self) -> miette::Result<()> {
+        self.length_log_service.save()?;
+        self.repl
+            .save_history(&self.history_path)
+            .into_diagnostic()?;
+        Ok(())
+    }
     pub fn run(&mut self) -> miette::Result<()> {
         log::debug!("running ReplApp=");
         loop {

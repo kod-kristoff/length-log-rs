@@ -38,6 +38,7 @@ pub trait PersonRepository {
     /// - MUST return [AddPersonError::Duplicate] if an [Person] with the same [PersonName]
     ///   already exists.
     fn save(&self, person: &Person) -> Result<(), AddPersonError>;
+    fn dump(&self) -> miette::Result<()>;
 }
 
 // pub trait PersonService {

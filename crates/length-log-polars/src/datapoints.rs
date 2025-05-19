@@ -6,6 +6,7 @@ use std::{
 
 use chrono::NaiveDate;
 use length_log_core::ports::data::DataRepository;
+use miette::IntoDiagnostic;
 use polars::{
     error::PolarsError,
     frame::DataFrame,
@@ -32,6 +33,12 @@ impl Default for PolarsDataRepo {
 }
 
 impl PolarsDataRepo {
+    pub fn with_path(path: PathBuf) -> Self {
+        Self {
+            path: Some(path),
+            ..Default::default()
+        }
+    }
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, PolarsError> {
         let mut file = File::open(path.as_ref())?;
         let datapoints = ParquetReader::new(&mut file).finish()?;
@@ -39,13 +46,6 @@ impl PolarsDataRepo {
             datapoints: RwLock::new(datapoints),
             path: Some(path.as_ref().into()),
         })
-    }
-
-    pub fn dump(&self) -> Result<(), PolarsError> {
-        let mut file = File::create(self.path.as_ref().unwrap()).unwrap();
-        let mut datapoints = self.datapoints.write().unwrap();
-        ParquetWriter::new(&mut file).finish(&mut datapoints)?;
-        Ok(())
     }
 }
 
@@ -68,6 +68,14 @@ impl DataRepository for PolarsDataRepo {
         let datapoint = DataFrame::new(vec![dates, names, datum]).unwrap();
         self.datapoints.write().unwrap().extend(&datapoint).unwrap();
         println!("{:?}", self.datapoints);
+        Ok(())
+    }
+    fn dump(&self) -> miette::Result<()> {
+        let mut file = File::create(self.path.as_ref().unwrap()).unwrap();
+        let mut datapoints = self.datapoints.write().unwrap();
+        ParquetWriter::new(&mut file)
+            .finish(&mut datapoints)
+            .into_diagnostic()?;
         Ok(())
     }
     // fn save(&self, id: &str, date: NaiveDate, data: f64) -> Result<(), services::ServiceError> {
