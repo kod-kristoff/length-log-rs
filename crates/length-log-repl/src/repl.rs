@@ -1,11 +1,19 @@
 use crate::Error;
-use length_log_core::App;
+use length_log_core::{
+    models::{DataPoint, Person},
+    App,
+};
 use rustyline::{
     error::ReadlineError,
     history::{FileHistory, History},
     Config,
 };
-use std::{ffi::OsString, io::Write, path::Path};
+use std::{
+    collections::HashMap,
+    ffi::OsString,
+    io::{self, Write},
+    path::Path,
+};
 
 mod flags;
 
@@ -90,8 +98,26 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
         }
         flags::ReplCmd::ListData(_) => {
             log::trace!("listing all data");
+            let id_person_map = match app.list_persons() {
+                Ok(persons) => {
+                    let mut id_persons = HashMap::new();
+                    for person in persons {
+                        id_persons.insert(person.id, person.name);
+                    }
+                    id_persons
+                }
+                Err(err) => {
+                    log::error!("error adding person: err={:?}", err);
+                    eprintln!("Error adding person: {}", err);
+                    return Ok(false);
+                }
+            };
             match app.list_data() {
-                Ok(data) => println!("{:#?}", data),
+                Ok(data) => {
+                    for data_point in data {
+                        println!("{:#?}", data_point)
+                    }
+                }
                 Err(err) => {
                     log::error!("error adding person: err={:?}", err);
                     eprintln!("Error adding person: {}", err);
@@ -106,4 +132,10 @@ fn respond(app: &App, line: &str) -> Result<bool, Error> {
     }
 
     Ok(false)
+}
+
+fn print_data_list(
+    data_points: &[DataPoint],
+    id_person_map: HashMap<String, Person>,
+) -> Result<(), io::Error> {
 }
