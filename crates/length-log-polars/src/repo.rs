@@ -29,10 +29,8 @@ pub struct PolarsRepository {
 
 impl Default for PolarsRepository {
     fn default() -> Self {
-        let names = Column::new_empty("name".into(), &DataType::String);
         let dates = Column::new_empty("date".into(), &DataType::Date);
-        let datum = Column::new_empty("data".into(), &DataType::Float64);
-        let datapoints = RwLock::new(DataFrame::new(vec![dates, names, datum]).unwrap());
+        let datapoints = RwLock::new(DataFrame::new(vec![dates]).unwrap());
         let columns = vec![
             Column::new_empty("name".into(), &DataType::String),
             Column::new_empty("start_date".into(), &DataType::Date),
@@ -137,9 +135,19 @@ impl LengthLogRepository for PolarsRepository {
 
         let names = Column::new("name".into(), vec![person.name().as_str()]);
         let start_dates = Column::new("start_date".into(), vec![person.start_date()]);
-        let person = DataFrame::new(vec![names, start_dates]).unwrap();
-        self.persons.write().unwrap().extend(&person).unwrap();
+        let person_df = DataFrame::new(vec![names, start_dates]).unwrap();
+        self.persons.write().unwrap().extend(&person_df).unwrap();
         log::debug!("persons ={:?}", self.persons);
+
+        let name_column = Column::new::<Vec<f64>, _>(person.name().as_str().into(), vec![]);
+        let name_data_df = DataFrame::new(vec![name_column]).unwrap();
+        {
+            let mut datapoints = self.datapoints.write().unwrap();
+            *datapoints =
+                polars::functions::concat_df_horizontal(&[datapoints.clone(), name_data_df], true)
+                    .unwrap();
+        }
+        log::debug!("datapoints={:?}", self.datapoints);
         Ok(())
     }
     fn dump(&self) -> miette::Result<()> {

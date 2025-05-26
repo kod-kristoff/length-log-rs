@@ -26,7 +26,7 @@ fn main() -> miette::Result<()> {
         if persons_path.exists() || data_path.exists() {
             todo!();
         }
-        PolarsRepository::with_path(data_path, persons_path)
+        PolarsRepository::with_paths(data_path, persons_path)
     };
     let service = Service::new(repo);
     let app_config = ReplAppConfig { history_path };
