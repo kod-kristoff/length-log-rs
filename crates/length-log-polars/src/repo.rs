@@ -4,16 +4,22 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 use miette::IntoDiagnostic;
 use polars::{
     error::PolarsError,
     frame::DataFrame,
+    functions::concat_df_diagonal,
     io::SerReader,
-    prelude::{Column, DataType, ParquetReader, ParquetWriter},
+    prelude::{
+        AnyValue, Column, DataType, DateType, IntoLazy, ParquetReader, ParquetWriter, col, lit,
+    },
 };
 
-use length_log_core::{models::AddPersonError, ports::LengthLogRepository};
+use length_log_core::{
+    models::{AddPersonError, Person, PersonName},
+    ports::LengthLogRepository,
+};
 use polars::{
     io::SerWriter,
     prelude::{CsvReadOptions, CsvWriter, Field, Schema},
@@ -96,6 +102,37 @@ impl PolarsRepository {
 }
 
 impl LengthLogRepository for PolarsRepository {
+    fn get_person(
+        &self,
+        name: &length_log_core::models::PersonName,
+    ) -> Result<Option<length_log_core::models::Person>, length_log_core::ports::ServiceError> {
+        let persons = self.persons.read().unwrap();
+        let mask = persons
+            .column("name")
+            .unwrap()
+            .str()
+            .unwrap()
+            .equal(name.as_str());
+        let filtered_persons = persons
+            .clone()
+            .lazy()
+            .filter(col("name").eq(lit(name.as_str())))
+            .collect()
+            .unwrap();
+        let person = filtered_persons.get_row(0).unwrap();
+        dbg!(&person);
+        dbg!(&person.0[0]);
+        let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
+        let epoch_days_since_ce = epoch.num_days_from_ce();
+        let name = PersonName::new(&person.0[0].get_str().unwrap()).unwrap();
+        let start_date = match person.0[1].cast(&DataType::Date) {
+            AnyValue::Date(days) => {
+                NaiveDate::from_num_days_from_ce_opt(days + epoch_days_since_ce).unwrap()
+            }
+            _ => todo!(),
+        };
+        Ok(Some(Person::new(name, start_date)))
+    }
     fn save_datapoint(
         &self,
         name: &length_log_core::models::PersonName,
@@ -108,11 +145,31 @@ impl LengthLogRepository for PolarsRepository {
             data,
             date
         );
-        let names = Column::new("name".into(), &[name.as_str()]);
-        let dates = Column::new("date".into(), &[date]);
-        let datum = Column::new("data".into(), &[data]);
-        let datapoint = DataFrame::new(vec![dates, names, datum]).unwrap();
-        self.datapoints.write().unwrap().extend(&datapoint).unwrap();
+
+        let columns = vec![
+            Column::new("date".into(), &[date]),
+            Column::new(name.as_str().into(), &[data]),
+        ];
+        // let persons = self.persons.read().unwrap();
+        // let person_names = persons.column("name").unwrap();
+        // for col_name in person_names {
+        //     dbg!(&col_name);
+
+        //     if col_name == name.as_str() {
+        //         columns.push(Column::new(name.as_str().into(), &[data]));
+        //     } else {
+        //         columns.push(Column::new(col_name.into(), &[0.0f64]));
+        //     }
+        // }
+        let datapoint = DataFrame::new(columns).unwrap();
+        dbg!(&datapoint);
+        {
+            let mut datapoints = self.datapoints.write().unwrap();
+            let tmp = concat_df_diagonal(&[datapoints.clone(), datapoint])
+                // .extend(&datapoint)
+                .unwrap();
+            *datapoints = tmp;
+        }
         println!("{:?}", self.datapoints);
         Ok(())
     }

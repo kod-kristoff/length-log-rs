@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["crates/length-log","./crates/length-log-core/", "./crates/length-log-repl/", "crates/length-log-polars"]
+members = [
+    "crates/length-log",
+    "crates/length-log-core/",
+    "crates/length-log-repl/",
+    "crates/length-log-polars",
+]
 
 [workspace.dependencies]
 # local crates
@@ -15,7 +20,7 @@ env_logger = "0.11.3"
 log = "0.4.21"
 miette = "7.2.0"
 nom = "7.1"
-polars = { version = "0.47.1" }
+polars = { version = "0.48.1" }
 rustyline = "15"
 shlex = "1.1.0"
 thiserror = "1.0.58"

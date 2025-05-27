@@ -32,11 +32,34 @@ where
         Ok(person)
     }
 
+    fn get_person(&self, name: &models::PersonName) -> Result<Option<Person>, ServiceError> {
+        self.repo.get_person(name)
+    }
+
     fn add_datapoint(
         &self,
         req: models::datapoint::AddDatapointRequest,
     ) -> Result<(), ServiceError> {
-        todo!()
+        let Some(person) = self.get_person(req.name())? else {
+            return Err(ServiceError::PersonNotFound(req.into_name()));
+        };
+        dbg!(&person);
+
+        if req.date() < person.start_date() {
+            return Err(ServiceError::DateEarlierThanStart {
+                date: req.date(),
+                start_date: person.start_date(),
+            });
+        }
+        log::trace!(
+            "adding data {} to {} at {:?}",
+            req.data(),
+            req.name(),
+            req.date()
+        );
+        self.repo
+            .save_datapoint(req.name(), req.date(), req.data())?;
+        Ok(())
     }
 
     fn list_persons(&self) -> Result<Vec<Person>, ServiceError> {

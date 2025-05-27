@@ -29,6 +29,7 @@ pub trait LengthLogService {
     ///
     /// - [AddPersonError::Duplicate] if an [Person] with the same [PersonName] already exists.
     fn add_person(&self, req: AddPersonRequest) -> Result<Person, AddPersonError>;
+    fn get_person(&self, name: &PersonName) -> Result<Option<Person>, ServiceError>;
     fn add_datapoint(&self, req: AddDatapointRequest) -> Result<(), ServiceError>;
     fn list_persons(&self) -> Result<Vec<Person>, ServiceError>;
     fn save(&self) -> miette::Result<()>;
@@ -48,6 +49,7 @@ pub trait LengthLogRepository {
     /// - MUST return [AddPersonError::Duplicate] if an [Person] with the same [PersonName]
     ///   already exists.
     fn save_person(&self, person: &Person) -> Result<(), AddPersonError>;
+    fn get_person(&self, name: &PersonName) -> Result<Option<Person>, ServiceError>;
     fn save_datapoint(
         &self,
         name: &PersonName,

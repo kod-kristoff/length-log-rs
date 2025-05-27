@@ -1,5 +1,5 @@
 use crate::Error;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, Utc};
 use length_log_core::{
     models::{datapoint::AddDatapointRequest, AddPersonRequest, PersonName},
     ports::LengthLogService,
@@ -140,7 +140,11 @@ where
             // } else {
             //     None
             // };
-            let req = AddDatapointRequest::new(name, date, data);
+            let req = AddDatapointRequest::new(
+                name,
+                date.unwrap_or_else(|| Utc::now().date_naive()),
+                data,
+            );
             if let Err(err) = service.add_datapoint(req) {
                 log::error!("error adding person: err={:?}", err);
                 eprintln!("Error adding person: {}", err);
