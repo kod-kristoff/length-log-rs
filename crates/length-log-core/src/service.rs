@@ -62,6 +62,16 @@ where
         Ok(())
     }
 
+    fn list_person_by_age(
+        &self,
+        name: &models::PersonName,
+    ) -> Result<Vec<models::datapoint::AgeRow>, ServiceError> {
+        let Some(person) = self.get_person(name)? else {
+            return Err(ServiceError::PersonNotFound(name.clone()));
+        };
+        self.repo
+            .get_data_with_base(person.name(), person.start_date())
+    }
     fn list_persons(&self) -> Result<Vec<Person>, ServiceError> {
         todo!()
     }

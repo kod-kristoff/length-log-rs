@@ -8,6 +8,9 @@ xflags::xflags! {
             required name: String
             optional start_date: NaiveDate
         }
+        cmd list-person-by-age {
+            required name: String
+        }
         cmd list-persons {}
         cmd add {
             required name: String
@@ -28,6 +31,7 @@ pub struct Repl {
 #[derive(Debug)]
 pub enum ReplCmd {
     AddPerson(AddPerson),
+    ListPersonByAge(ListPersonByAge),
     ListPersons(ListPersons),
     Add(Add),
     Quit(Quit),
@@ -37,6 +41,11 @@ pub enum ReplCmd {
 pub struct AddPerson {
     pub name: String,
     pub start_date: Option<NaiveDate>,
+}
+
+#[derive(Debug)]
+pub struct ListPersonByAge {
+    pub name: String,
 }
 
 #[derive(Debug)]

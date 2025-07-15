@@ -30,3 +30,9 @@ impl AddDatapointRequest {
         self.name
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct AgeRow {
+    pub age_in_days: u32,
+    pub data: f64,
+}

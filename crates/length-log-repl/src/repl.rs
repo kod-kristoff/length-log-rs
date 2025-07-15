@@ -125,6 +125,18 @@ where
                 eprintln!("Error adding person: {}", err);
             }
         }
+        flags::ReplCmd::ListPersonByAge(flags::ListPersonByAge { name }) => {
+            let name = PersonName::new(&name)?;
+            match service.list_person_by_age(&name) {
+                Err(err) => {
+                    log::error!("error listing person by age: err={:?}", err);
+                    eprintln!("Error listing person by age: {:?}", err);
+                }
+                Ok(what) => {
+                    todo!()
+                }
+            }
+        }
         flags::ReplCmd::ListPersons(_) => match service.list_persons() {
             Ok(persons) => println!("{:#?}", persons),
             Err(err) => {
@@ -155,6 +167,7 @@ where
             std::io::stdout().flush()?;
             return Ok(true);
         }
+        _ => todo!(),
     }
 
     Ok(false)

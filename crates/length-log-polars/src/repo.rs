@@ -133,6 +133,7 @@ impl LengthLogRepository for PolarsRepository {
         };
         Ok(Some(Person::new(name, start_date)))
     }
+
     fn save_datapoint(
         &self,
         name: &length_log_core::models::PersonName,
@@ -206,6 +207,26 @@ impl LengthLogRepository for PolarsRepository {
         }
         log::debug!("datapoints={:?}", self.datapoints);
         Ok(())
+    }
+    fn get_data_with_base(
+        &self,
+        name: &PersonName,
+        start_date: NaiveDate,
+    ) -> Result<Vec<length_log_core::models::datapoint::AgeRow>, length_log_core::ports::ServiceError>
+    {
+        let datapoints = self.datapoints.read().unwrap();
+        let name_df = datapoints
+            .clone()
+            .lazy()
+            .select([
+                (col("date") - lit(start_date)).alias("age (in days)"),
+                col(name.as_str()),
+            ])
+            .filter(col(name.as_str()).is_not_null())
+            .collect()
+            .unwrap();
+        dbg!(&name_df);
+        todo!()
     }
     fn dump(&self) -> miette::Result<()> {
         self.dump_persons()?;

@@ -12,6 +12,7 @@ use chrono::NaiveDate;
 pub use error::ServiceError;
 
 use crate::models::datapoint::AddDatapointRequest;
+use crate::models::datapoint::AgeRow;
 use crate::models::person::AddPersonError;
 use crate::models::person::AddPersonRequest;
 #[allow(unused_imports)] // PersonName is used in doc comments
@@ -31,6 +32,7 @@ pub trait LengthLogService {
     fn add_person(&self, req: AddPersonRequest) -> Result<Person, AddPersonError>;
     fn get_person(&self, name: &PersonName) -> Result<Option<Person>, ServiceError>;
     fn add_datapoint(&self, req: AddDatapointRequest) -> Result<(), ServiceError>;
+    fn list_person_by_age(&self, name: &PersonName) -> Result<Vec<AgeRow>, ServiceError>;
     fn list_persons(&self) -> Result<Vec<Person>, ServiceError>;
     fn save(&self) -> miette::Result<()>;
 }
@@ -56,5 +58,10 @@ pub trait LengthLogRepository {
         date: NaiveDate,
         value: f64,
     ) -> Result<(), ServiceError>;
+    fn get_data_with_base(
+        &self,
+        name: &PersonName,
+        start_date: NaiveDate,
+    ) -> Result<Vec<AgeRow>, ServiceError>;
     fn dump(&self) -> miette::Result<()>;
 }
