@@ -1,16 +1,21 @@
+use chrono::NaiveDate;
+
 xflags::xflags! {
     src "./src/repl/flags.rs"
 
     cmd repl {
         cmd add-person {
             required name: String
-            optional start_date: String
+            optional start_date: NaiveDate
+        }
+        cmd list-person-by-age {
+            required name: String
         }
         cmd list-persons {}
         cmd add {
             required name: String
             required data: f64
-            optional date: String
+            optional date: NaiveDate
         }
         cmd quit {}
     }
@@ -26,6 +31,7 @@ pub struct Repl {
 #[derive(Debug)]
 pub enum ReplCmd {
     AddPerson(AddPerson),
+    ListPersonByAge(ListPersonByAge),
     ListPersons(ListPersons),
     Add(Add),
     Quit(Quit),
@@ -34,7 +40,12 @@ pub enum ReplCmd {
 #[derive(Debug)]
 pub struct AddPerson {
     pub name: String,
-    pub start_date: Option<String>,
+    pub start_date: Option<NaiveDate>,
+}
+
+#[derive(Debug)]
+pub struct ListPersonByAge {
+    pub name: String,
 }
 
 #[derive(Debug)]
@@ -44,7 +55,7 @@ pub struct ListPersons;
 pub struct Add {
     pub name: String,
     pub data: f64,
-    pub date: Option<String>,
+    pub date: Option<NaiveDate>,
 }
 
 #[derive(Debug)]

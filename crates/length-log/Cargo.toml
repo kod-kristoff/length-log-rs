@@ -14,5 +14,5 @@ miette = { workspace = true, features = ["fancy"] }
 
 # local deps
 length-log-core.workspace = true
-length-log-core-impl.workspace = true
+length-log-polars.workspace = true
 length-log-repl.workspace = true
