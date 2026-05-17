@@ -17,7 +17,7 @@ miette = "7.2.0"
 nom = "7.1"
 polars = { version = "0.38" }
 rustyline = "14"
-shlex = "1.1.0"
+shlex = "2.0.0"
 thiserror = "1.0.58"
 ulid = "1.1.2"
 xflags = "0.3.2"
